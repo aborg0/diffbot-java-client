@@ -1,17 +1,17 @@
 package com.diffbot.clients;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.json.JSONObject;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
 
 /**
  * Created by wadi chemkhi on 02/01/14.
@@ -97,14 +97,7 @@ public class DiffbotClient {
         switch (responseType){
             case Jackson: instance=getMapper().readTree(httpClient.getJson(api, url,params));
                 break;
-            case Jackson2: instance = getJackson2Mapper().readTree(httpClient.getJson(api, url, params));
-            	break;
-            case JSONObject: instance= new JSONObject(httpClient.getJson(api, url, params));
-            	break;
-            case String: instance= httpClient.getJson(api, url,params);
-            	break;
-            default:
-            	throw new UnsupportedOperationException("Unknown response type: " + responseType);
+            default: instance= new JSONObject(httpClient.getJson(api, url,params));
         }
         return instance;
     }
@@ -115,16 +108,8 @@ public class DiffbotClient {
         return mapper;
     }
 
-    protected com.fasterxml.jackson.databind.ObjectMapper getJackson2Mapper(){
-    	com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-    	mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
-    	return mapper;
-    }
-    
     public enum ResponseType{
         Jackson,
-        JSONObject,
-        Jackson2,
-        String
+        JSONObject
     }
 }

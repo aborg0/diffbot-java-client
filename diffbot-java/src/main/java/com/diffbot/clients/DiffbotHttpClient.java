@@ -72,24 +72,20 @@ public class DiffbotHttpClient {
 
         StringBuilder query=new StringBuilder()
                 .append("token=").append(token)
-                //TODO URLEncode?
                 .append("&url=").append(url);
 
         if (params!=null){
         Iterator<String> it = params.keySet().iterator();
         while (it.hasNext()) {
             String key = it.next();
-            //TODO URLEncode?
             query.append("&").append(key).append("=").append(params.get(key));
         }
         }
         ub.setCustomQuery(query.toString());
         try {
             uri = ub.build();
-            //TODO uh?
             System.out.println(uri.toString());
         } catch (URISyntaxException e) {
-        	//TODO Seriously?
             e.printStackTrace();
         }
 
