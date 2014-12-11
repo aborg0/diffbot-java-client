@@ -1,11 +1,5 @@
 package com.diffbot.clients;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,6 +7,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 
 /**
  * Created by wadi chemkhi on 02/01/14.
@@ -70,44 +72,50 @@ public class DiffbotHttpClient {
                 .setHost("api.diffbot.com")
                 .setPath("/v" + version + "/" + api);
 
-        StringBuilder query=new StringBuilder()
-                .append("token=").append(token)
-                //TODO URLEncode?
-                .append("&url=").append(url);
+        ub.addParameter("token", token);
+        ub.addParameter("url", url);
+//        StringBuilder query=new StringBuilder()
+//                .append("token=").append(token)
+//                //TODO URLEncode?
+//                .append("&url=").append(url);
 
         if (params!=null){
-        Iterator<String> it = params.keySet().iterator();
-        while (it.hasNext()) {
-            String key = it.next();
-            //TODO URLEncode?
-            query.append("&").append(key).append("=").append(params.get(key));
+        	for (Entry<String, String> entry: params.entrySet()) {
+        		ub.addParameter(entry.getKey(), entry.getValue());
+        	}
+//        Iterator<String> it = params.keySet().iterator();
+//        while (it.hasNext()) {
+//            String key = it.next();
+//            //TODO URLEncode?
+//            query.append("&").append(key).append("=").append(params.get(key));
+//        }
         }
-        }
-        ub.setCustomQuery(query.toString());
+//        ub.setQuery(query.toString());
         try {
-            uri = ub.build();
-            //TODO uh?
-            System.out.println(uri.toString());
+            String string = ub.build().toString();
+			uri = new URI(string.replaceAll("%25([\\da-fA-F]{2})", "%$1"));
+            ////TODO uh?
+            //System.out.println(uri.toString());
         } catch (URISyntaxException e) {
-        	//TODO Seriously?
-            e.printStackTrace();
+        	throw new RuntimeException(e);
         }
 
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpClient httpClient = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(uri);
-        CloseableHttpResponse response = null;
+        HttpResponse response = null;
         String json = null;
 
         response = httpClient.execute(httpGet);
         BufferedReader reader = new BufferedReader(new InputStreamReader(
-                response.getEntity().getContent(), "utf-8"), 8);
+                response.getEntity().getContent(), "utf-8"), 2048);
         StringBuilder sb = new StringBuilder();
         String line = null;
         while ((line = reader.readLine()) != null) {
             sb.append(line);
         }
         json = sb.toString();
-        response.close();
+        httpGet.releaseConnection();
+        //response.close();
         return json;
 
     }
