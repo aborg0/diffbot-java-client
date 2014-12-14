@@ -72,25 +72,20 @@ public class DiffbotHttpClient {
 
         StringBuilder query=new StringBuilder()
                 .append("token=").append(token)
-                //TODO URLEncode?
                 .append("&url=").append(url);
 
         if (params!=null){
         Iterator<String> it = params.keySet().iterator();
         while (it.hasNext()) {
             String key = it.next();
-            //TODO URLEncode?
             query.append("&").append(key).append("=").append(params.get(key));
         }
         }
         ub.setCustomQuery(query.toString());
         try {
             uri = ub.build();
-            //TODO uh?
-            System.out.println(uri.toString());
         } catch (URISyntaxException e) {
-        	//TODO Seriously?
-            e.printStackTrace();
+        	throw new IOException(e.getMessage(), e);
         }
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -99,15 +94,18 @@ public class DiffbotHttpClient {
         String json = null;
 
         response = httpClient.execute(httpGet);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(
-                response.getEntity().getContent(), "utf-8"), 8);
-        StringBuilder sb = new StringBuilder();
-        String line = null;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line);
+        try {
+	        BufferedReader reader = new BufferedReader(new InputStreamReader(
+	                response.getEntity().getContent(), "utf-8"), 8);
+	        StringBuilder sb = new StringBuilder();
+	        String line = null;
+	        while ((line = reader.readLine()) != null) {
+	            sb.append(line);
+	        }
+	        json = sb.toString();
+        } finally {
+        	response.close();
         }
-        json = sb.toString();
-        response.close();
         return json;
 
     }
